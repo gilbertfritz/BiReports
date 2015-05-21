@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="js/thirdparty/jquery214.js"></script>
+    <script src="js/barchart.js"></script>
+    <script src="js/util.js"></script>
+    <script src="js/thirdparty/Chart.js"></script>
+    
+    <script src="js/helper.js"></script>
+    
+    <script>
+        var data;
+        var dataMap = {};
+        
+/*        $(document).ready(function(){
+
+           $.ajax({
+                url: '/saiku/rest/saiku/gfritz/repository/',
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                success: function(data) {
+                    extractQueryNames( data );
+                    return data;
+                },
+                error: function() {
+                    alert('Error occured');
+                }
+            });
+
+        });*/
+        
+        $(document).ready(function(){
+            data = getTestData();
+            extractQueryNames(data);
+            //displayBarChartData("Chartname", getTestResult());
+        });
+        
+        function extractQueryNames(data){
+            //console.log(JSON.stringify(data));
+            var queryNames = [];
+            $.each(data, function( index, value ) {
+                queryNames[index] = value.name;
+                dataMap[value.name] = value;
+                console.log( index + ": " + value.name );
+            });
+            populateDropDown(queryNames);
+        }
+        
+        function populateDropDown(options){
+            var select = document.getElementById("selectQuery"); 
+            for(var i = 0; i < options.length; i++) {
+                var opt = options[i];
+                var el = document.createElement("option");
+                el.textContent = opt;
+                el.value = opt;
+                select.appendChild(el);
+            }
+        }
+        
+        function executeQuery(){
+            var queryName = document.getElementById("selectQuery").value;
+            var queryData = dataMap[queryName].xml;
+            var instanceName = "query-" + guid();
+            
+            $.ajax({
+                url: '/saiku/rest/saiku/gfritz/query/' + instanceName,
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/xml',
+                async: false,
+                data: {'xml':queryData},
+                success: function(syncResponse) {
+                    getQueryResults(queryName, instanceName);
+                },
+                error: function() {
+                    alert('Error occured');
+                }
+            });
+        }
+
+        function getQueryResults(queryName, instanceName){
+            $.ajax({
+                url: '/saiku/rest/saiku/gfritz/query/' + instanceName + '/result',
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                success: function(syncResponse) {
+                    displayBarChartData(queryName, syncResponse);
+                },
+                error: function() {
+                    alert('Error occured');
+                }
+            });
+        }
+        
+    </script>
+</head>
+
+<body>
+    <h1>Welcome Managers</h1>
+    <h2>Go raise the income!</h2>
+    <select id="selectQuery"></select>
+    <button id="executeQuery" onclick="executeQuery()">SHOW</button>
+</body>
+
+</html>
