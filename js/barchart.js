@@ -13,10 +13,10 @@ function drawBarChart(chartname, preparedData){
         return;
     }
     
-    $('body').append('<div id="div_' + chartname + '"></div>');
+    $('body').append('<div id="div_' + chartname + '" class="chartcanvas"></div>');
     var chartdiv = $('#div_' + chartname);
     chartdiv.append('<h3>' + chartname + '</h3>');
-    chartdiv.append('<button id="redraw_' + chartname + '">I dont like the colors. Redraw!</button>');
+    chartdiv.append('<button id="redraw_' + chartname + '" style="visibility:hidden">Redraw</button>');
     chartdiv.append('<div id="legend_' + chartname + '"></div>');
     chartdiv.append('<canvas id="canvas_' + chartname + '"></canvas>');
     var ctx = $("#canvas_" + chartname).get(0).getContext("2d");
@@ -26,9 +26,16 @@ function drawBarChart(chartname, preparedData){
     var legend = myBarChart.generateLegend();
     $("#legend_" + chartname).html(legend);
     $("#redraw_" + chartname).click(function(){
-        chartdiv.remove();
-        drawBarChart(chartname, preparedData);
+        redrawBarChart(new String(chartname), $.extend(true, {}, preparedData));
     });
+}
+
+function redrawBarChart( chartname, preparedData){
+    var ctx = $("#canvas_" + chartname).get(0).getContext("2d");
+    ctx.clearRect ( 0 , 0 , ctx.canvas.width, ctx.canvas.height );
+    ctx.canvas.width = window.innerWidth * 0.8;
+    ctx.canvas.height = window.innerHeight * 0.8
+    var myBarChart = new Chart(ctx).Bar(preparedData, barChartOptions);
 }
 
 function prepareBarChartData(results){
@@ -65,12 +72,16 @@ function prepareBarChartData(results){
     var remainingRow = null;
     if( headerRows.length > 1){
         $.each(headerRows, function( index, row ) {
-            var firstValue = row[0].value;
+            var firstValue = null;
             var allSame = true;
-            for( i = 1; i < row.length; i++){
-                if( row[i].value != firstValue){
-                    allSame = false;
-                    break;
+            for( i = 0; i < row.length; i++){
+                if( row[i].value != "null"){
+                    if( firstValue == null){
+                        firstValue = row[i].value;
+                    } else if( row[i].value != firstValue){
+                        allSame = false;
+                        break;
+                    }
                 }
             }
             if( !allSame){

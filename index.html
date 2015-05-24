@@ -12,6 +12,7 @@
     <script>
         var data;
         var dataMap = {};
+        var queryMap = {};
         
 /*        $(document).ready(function(){
 
@@ -30,23 +31,44 @@
             });
 
         });*/
+
+        function respondCanvas(){
+            $(".chartcanvas").each(function(index){
+                    var redrawbutton = $(this).find("button").get(0);
+                    //var ctx = $(this).find("canvas").get(0).getContext('2d');
+;
+                    redrawbutton.click();
+                }
+            );
+        }        
         
         $(document).ready(function(){
-            data = getTestData();
-            extractQueryNames(data);
-            //displayBarChartData("Chartname", getTestResult());
+            //data = getTestData();
+            //extractQueryNames(data);
+            displayBarChartData("Chartname", getTestResult());
+            
+            $(window).resize( respondCanvas );
         });
         
         function extractQueryNames(data){
             //console.log(JSON.stringify(data));
-            var queryNames = [];
             $.each(data, function( index, value ) {
-                queryNames[index] = value.name;
-                dataMap[value.name] = value;
-                console.log( index + ": " + value.name );
+                var splt = value.name.split("_");
+                if( splt[0] == "pub"){
+                    var entry = queryMap[splt[1]];
+                    if( entry == null){
+                        entry = [];
+                        queryMap[splt[1]] = entry;
+                    }
+                    entry.push(value);
+                }
             });
-            populateDropDown(queryNames);
-        }
+            var options = [];
+            $.each(queryMap, function( key, value ) {
+                options.push(key);
+            });            
+            populateDropDown(options);
+        }        
         
         function populateDropDown(options){
             var select = document.getElementById("selectQuery"); 
@@ -58,34 +80,43 @@
                 select.appendChild(el);
             }
         }
-        
-        function executeQuery(){
-            var queryName = document.getElementById("selectQuery").value;
-            var queryData = dataMap[queryName].xml;
-            var instanceName = "query-" + guid();
-            
-            $.ajax({
-                url: '/saiku/rest/saiku/gfritz/query/' + instanceName,
-                type: 'POST',
-                dataType: 'json',
-                contentType: 'application/xml',
-                async: false,
-                data: {'xml':queryData},
-                success: function(syncResponse) {
-                    getQueryResults(queryName, instanceName);
-                },
-                error: function() {
-                    alert('Error occured');
-                }
-            });
-        }
 
+        function executeQueries(){
+            var queryOwner = document.getElementById("selectQuery").value;
+            var queries = queryMap[queryOwner];
+
+            for( z = 0; z < queries.length; z++){
+                var queryName = queries[z].name;
+                var instanceName = "query-" + guid();          
+                var queryData = queries[z].xml;
+                
+                postQuery(new String(queryName), new String(instanceName), new String(queryData));
+            }
+        }        
+        
+        function postQuery(queryName, instanceName, queryData){
+                $.ajax({
+                    url: '/saiku/rest/saiku/gfritz/query/' + instanceName,
+                    type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/xml',
+                    async: true,
+                    data: {'xml':queryData},
+                    success: function(syncResponse) {
+                        getQueryResults(queryName, instanceName);
+                    },
+                    error: function() {
+                        alert('Error occured');
+                    }
+                });
+        }
+        
         function getQueryResults(queryName, instanceName){
             $.ajax({
                 url: '/saiku/rest/saiku/gfritz/query/' + instanceName + '/result',
                 type: 'GET',
                 dataType: 'json',
-                async: false,
+                async: true,
                 success: function(syncResponse) {
                     displayBarChartData(queryName, syncResponse);
                 },
@@ -102,7 +133,7 @@
     <h1>Welcome Managers</h1>
     <h2>Go raise the income!</h2>
     <select id="selectQuery"></select>
-    <button id="executeQuery" onclick="executeQuery()">SHOW</button>
+    <button id="executeQuery" onclick="executeQueries()">SHOW</button>
 </body>
 
 </html>
