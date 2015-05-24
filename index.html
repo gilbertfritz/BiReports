@@ -14,7 +14,7 @@
         var dataMap = {};
         var queryMap = {};
         
-/*        $(document).ready(function(){
+        $(document).ready(function(){
 
            $.ajax({
                 url: '/saiku/rest/saiku/gfritz/repository/',
@@ -30,8 +30,18 @@
                 }
             });
 
-        });*/
+        });
 
+        
+/*        $(document).ready(function(){
+            //data = getTestData();
+            //extractQueryNames(data);
+            displayBarChartData("Chartname", getTestResult());
+            
+            //$(window).resize( respondCanvas );
+        });
+*/
+        
         function respondCanvas(){
             $(".chartcanvas").each(function(index){
                     var redrawbutton = $(this).find("button").get(0);
@@ -40,15 +50,7 @@
                     redrawbutton.click();
                 }
             );
-        }        
-        
-        $(document).ready(function(){
-            //data = getTestData();
-            //extractQueryNames(data);
-            displayBarChartData("Chartname", getTestResult());
-            
-            $(window).resize( respondCanvas );
-        });
+        }          
         
         function extractQueryNames(data){
             //console.log(JSON.stringify(data));
