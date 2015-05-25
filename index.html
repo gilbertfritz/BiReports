@@ -3,16 +3,15 @@
 
 <head>
     <script src="js/thirdparty/jquery214.js"></script>
-    <script src="js/barchart.js"></script>
+    <script src="js/ReportChart.js"></script>
     <script src="js/util.js"></script>
     <script src="js/thirdparty/Chart.js"></script>
     
     <script src="js/helper.js"></script>
     
     <script>
-        var data;
-        var dataMap = {};
         var queryMap = {};
+        var chartMap= [];
         
         $(document).ready(function(){
 
@@ -32,25 +31,14 @@
 
         });
 
-        
-/*        $(document).ready(function(){
-            //data = getTestData();
-            //extractQueryNames(data);
-            displayBarChartData("Chartname", getTestResult());
+        /*
+        $(document).ready(function(){
+            extractQueryNames(getTestData());
+            //displayBarChartData("Chartname", getTestResult());
             
             //$(window).resize( respondCanvas );
-        });
-*/
-        
-        function respondCanvas(){
-            $(".chartcanvas").each(function(index){
-                    var redrawbutton = $(this).find("button").get(0);
-                    //var ctx = $(this).find("canvas").get(0).getContext('2d');
-;
-                    redrawbutton.click();
-                }
-            );
-        }          
+        });*/
+         
         
         function extractQueryNames(data){
             //console.log(JSON.stringify(data));
@@ -84,6 +72,7 @@
         }
 
         function executeQueries(){
+            $("#form").hide();
             var queryOwner = document.getElementById("selectQuery").value;
             var queries = queryMap[queryOwner];
 
@@ -91,9 +80,14 @@
                 var queryName = queries[z].name;
                 var instanceName = "query-" + guid();          
                 var queryData = queries[z].xml;
-                
+                var chart = new ReportChart(queryName, instanceName);
+                chart.appendDiv($("body"));
+                chartMap[instanceName] = chart;
                 postQuery(new String(queryName), new String(instanceName), new String(queryData));
             }
+            
+            //TEST
+            //reportCharts[0].displayBarChartData(getTestResult());
         }        
         
         function postQuery(queryName, instanceName, queryData){
@@ -119,8 +113,8 @@
                 type: 'GET',
                 dataType: 'json',
                 async: true,
-                success: function(syncResponse) {
-                    displayBarChartData(queryName, syncResponse);
+                success: function(result) {
+                    chartMap[instanceName].displayBarChartData(result);
                 },
                 error: function() {
                     alert('Error occured');
@@ -134,8 +128,10 @@
 <body>
     <h1>Welcome Managers</h1>
     <h2>Go raise the income!</h2>
-    <select id="selectQuery"></select>
-    <button id="executeQuery" onclick="executeQueries()">SHOW</button>
+    <div id="form">
+        <select id="selectQuery"></select>
+        <button id="executeQuery" onclick="executeQueries()">SHOW</button>
+    </div>
 </body>
 
 </html>
