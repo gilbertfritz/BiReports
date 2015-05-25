@@ -3,16 +3,21 @@ function ReportChart(queryname, instanceName){
     var chartdiv;
     var msgtag;
     var chartname;
-    //var compositeId;
     var displayOptions;
     var preparedData;
     var ctx;
     var chartJsInst;
+    var type = "Bar";
     var barChartOptions = {legendTemplate : "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].fillColor%>\"><%=datasets[i].label%></span><%if(datasets[i].label){%><%}%></li><%}%></ul>"};
 
     var qnSplit = queryname.split("_");
     chartname = qnSplit[2];
     displayOptions = qnSplit[3];
+    
+    //interpret options
+    if( displayOptions != null && displayOptions.indexOf("line") != -1){
+        type = "Line";
+    }
 
     //public
     this.appendDiv = function(parent){
@@ -36,7 +41,7 @@ function ReportChart(queryname, instanceName){
     function drawBarChart(){
         console.log(chartdiv);
         msgtag.hide();
-        chartdiv.append('<button id="redraw_' + queryname + '" style="visibility:hidden">Redraw</button>');
+        chartdiv.append('<button id="redraw_' + queryname + '">Redraw</button>');
         chartdiv.append('<div id="legend_' + queryname + '"></div>');
         chartdiv.append('<canvas id="canvas_' + queryname + '"></canvas>');
         ctx = $("#canvas_" + queryname).get(0).getContext("2d");
@@ -52,7 +57,15 @@ function ReportChart(queryname, instanceName){
         ctx.clearRect ( 0 , 0 , ctx.canvas.width, ctx.canvas.height );
         ctx.canvas.width = window.innerWidth * 0.8;
         ctx.canvas.height = window.innerHeight * 0.4;
-        chartJsInst = new Chart(ctx).Bar(preparedData, barChartOptions);
+        preparedData.datasets.fillColor = randRGBAString(0.3);
+        //$.each(preparedData.datasets, function( index, set ) {
+        //    set.fillColor = randRGBAString(0.3);
+        //});
+        if( type == "Bar"){
+            chartJsInst = new Chart(ctx).Bar(preparedData, barChartOptions);
+        }else{
+            chartJsInst = new Chart(ctx).Line(preparedData, barChartOptions);
+        }
     }
 
     function prepareBarChartData(results){
@@ -112,6 +125,37 @@ function ReportChart(queryname, instanceName){
         }else{
             remainingRow = headerRows[0];
         }
+        
+        /*//feature to add 3rd dimension
+        var thirdDimCount = 0;
+        var thirdDimUnits = [];
+        var thirdDimOccurences = null;
+        if( headerRows.length > 2){
+            return "ChartError#5: Too many dimensions in 'spalten'";
+        }else if( headerRows.length == 2){
+            var thirdDimRow = headerRows[0];
+            for( i = 0; i < thirdDimRow.length; i++){
+                var unit = thirdDimRow[i];
+                if( thirdDimUnits[unit] == null){
+                    thirdDimUnits[unit] = 1;
+                }else{
+                    thirdDimUnits[unit] = thirdDimUnits[unit]+1;
+                }
+            }
+            $.each(thirdDimUnits, function( key, entry ) {
+                console.log(key);
+                thirdDimCount++;
+                if( thirdDimOccurences == null){
+                    thirdDimOccurences = entry;
+                }else if( entry != thirdDimOccurences){
+                    return "ChartError#6: 3rd dimension instances have not same size";
+                }
+            }
+        }else{
+            thirdDimCount = 1;
+            thirdDimUnits["def"] = headerRows[0].length;
+        }*/
+        
         //prepare labels
         var labels = [];
         for( i = 0; i < remainingRow.length; i++){

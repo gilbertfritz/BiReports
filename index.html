@@ -7,13 +7,13 @@
     <script src="js/util.js"></script>
     <script src="js/thirdparty/Chart.js"></script>
     
-    <script src="js/helper.js"></script>
+    <script src="js/testdata.js"></script>
     
     <script>
         var queryMap = {};
         var chartMap= [];
         
-        $(document).ready(function(){
+       $(document).ready(function(){
 
            $.ajax({
                 url: '/saiku/rest/saiku/gfritz/repository/',
@@ -31,7 +31,7 @@
 
         });
 
-        /*
+       /*
         $(document).ready(function(){
             extractQueryNames(getTestData());
             //displayBarChartData("Chartname", getTestResult());
@@ -87,7 +87,7 @@
             }
             
             //TEST
-            //reportCharts[0].displayBarChartData(getTestResult());
+            //chartMap[instanceName].displayBarChartData(getTestResult2());
         }        
         
         function postQuery(queryName, instanceName, queryData){
