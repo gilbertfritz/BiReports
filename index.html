@@ -13,6 +13,8 @@
         var queryMap = {};
         var chartMap= [];
         
+        var POST_RETRIES = 10;
+        
        $(document).ready(function(){
 
            $.ajax({
@@ -83,14 +85,15 @@
                 var chart = new ReportChart(queryName, instanceName);
                 chart.appendDiv($("body"));
                 chartMap[instanceName] = chart;
-                postQuery(new String(queryName), new String(instanceName), new String(queryData));
+                console.log( "Before Post request\nQueryname: " + queryName + "\nQuerydata: " + queryData);
+                postQuery(new String(queryName), new String(instanceName), new String(queryData), 0);
             }
             
             //TEST
             //chartMap[instanceName].displayBarChartData(getTestResult2());
         }        
         
-        function postQuery(queryName, instanceName, queryData){
+        function postQuery(queryName, instanceName, queryData, retry){
                 $.ajax({
                     url: '/saiku/rest/saiku/gfritz/query/' + instanceName,
                     type: 'POST',
@@ -99,25 +102,30 @@
                     async: true,
                     data: {'xml':queryData},
                     success: function(syncResponse) {
-                        getQueryResults(queryName, instanceName);
+                        getQueryResults(queryName, instanceName, queryData, retry);
                     },
                     error: function() {
-                        alert('Error occured');
+                        console.log("--> POST RETRY DUE TO HTTP ERROR " + queryName + "; retry: " + (retry+1));
+                        postQuery(queryName, instanceName, queryData, retry+1);
                     }
                 });
         }
         
-        function getQueryResults(queryName, instanceName){
+        function getQueryResults(queryName, instanceName, queryData, retry){
             $.ajax({
                 url: '/saiku/rest/saiku/gfritz/query/' + instanceName + '/result',
                 type: 'GET',
                 dataType: 'json',
                 async: true,
                 success: function(result) {
-                    chartMap[instanceName].displayBarChartData(result);
+                    if( result.error == null){
+                        chartMap[instanceName].displayBarChartData(result);
+                    }else if( retry < POST_RETRIES){
+                        console.log("--> POST RETRY DUE GET" + queryName + "; retry: " + (retry+1));
+                        postQuery(queryName, instanceName, queryData, retry+1);
+                    }
                 },
                 error: function() {
-                    alert('Error occured');
                 }
             });
         }
